@@ -1,0 +1,23 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6f401bb1c5c52514eba33c0c2ffdc8ff, type: 3}
+  m_Name: EpsilonModel.expressionList
+  m_EditorClassIdentifier: 
+  CubismExpressionObjects:
+  - {fileID: 11400000, guid: 8eee73c0d5dc8c4499c7dd7e678cb2a2, type: 2}
+  - {fileID: 11400000, guid: d6355171184f2a040a5447399d3f46ba, type: 2}
+  - {fileID: 11400000, guid: 73211a6eaf1c6594095d218ec3d22db3, type: 2}
+  - {fileID: 11400000, guid: 75c9de5e93eb1d6488cc4f06916c6742, type: 2}
+  - {fileID: 11400000, guid: 2d243993bd8023b42bc9de708182796e, type: 2}
+  - {fileID: 11400000, guid: 9be46dada4adfcd448493fcc5e5546e4, type: 2}
+  - {fileID: 11400000, guid: 7087324f5c4388f43b3979b2c1494de7, type: 2}
+  - {fileID: 11400000, guid: f4243d5f6ee51b94388bafa5acd80e6c, type: 2}
