@@ -1,0 +1,3 @@
+当前工程所有的功能：
+Live2D聊天助手
+基于VITS语音合成模型，OpenAI.GPT3 SDK和Unity Live2D Cubism插件，实现的能够自由聊天的Live2D助手
