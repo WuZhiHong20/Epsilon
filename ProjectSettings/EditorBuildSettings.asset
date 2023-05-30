@@ -6,6 +6,6 @@ EditorBuildSettings:
   serializedVersion: 2
   m_Scenes:
   - enabled: 1
-    path: Assets/Scenes/Live2D.unity
-    guid: 2a2864235f3c85e4cacd0cd16fbd0450
+    path: Assets/Scenes/Wife.unity
+    guid: 79eb63ba2dc459e40906386d13e28f76
   m_configObjects: {}

@@ -116,7 +116,9 @@ public class GPTChat : MonoBehaviour
                         UnityEngine.Debug.Log(answerInfo.AudioPath);
                         answerInfo.AudioPath = "file:///" + answerInfo.AudioPath.Replace("\\", "/");
                         readyPath.Enqueue(answerInfo);
+                        UnityEngine.Debug.Log("lailelaile");
                         audioPlayer.AddAudioCount();
+                        //StartCoroutine(GetAudio(answerInfo));
                     }
                 }
             }
@@ -166,7 +168,6 @@ public class GPTChat : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-        UnityEngine.Debug.Log("miao");
         SaveToLocal.Init();
         chatGPT = new GPT();
         chatGPT.sendOutputData += GetOutPutInfo;

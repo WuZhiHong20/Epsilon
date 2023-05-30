@@ -68,6 +68,7 @@ public class AudioPlayer : MonoBehaviour
 
     IEnumerator ShowAnswer(string answer,float time)
     {
+        time -= 2;
         answer = "÷˙ ÷:" + answer;
         float charsEverySec = answer.Length / time;
         float curTime = Time.deltaTime;

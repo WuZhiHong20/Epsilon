@@ -11,10 +11,10 @@ TagManager:
   - 
   - Water
   - UI
+  - Plants
+  - Zombies
   - 
-  - 
-  - 
-  - 
+  - BackGround
   - 
   - 
   - 
@@ -40,4 +40,10 @@ TagManager:
   m_SortingLayers:
   - name: Default
     uniqueID: 0
+    locked: 0
+  - name: BackGround
+    uniqueID: 771316177
+    locked: 0
+  - name: Plants
+    uniqueID: 3258804715
     locked: 0
