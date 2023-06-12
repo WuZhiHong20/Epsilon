@@ -24,8 +24,10 @@ class NetWorker : MonoBehaviour
 
     public AudioSource audioSource;
 
+    private int count;
     private void Start()
     {
+        count = 0;
         //StartSymbol = false; fragmentNum= 0; AudioBuffer.Clear(); totalAudioSize= 0;
         Logger.Init();
         Connection();
@@ -99,15 +101,16 @@ class NetWorker : MonoBehaviour
     {
         // 创建空的 AudioClip
         //AudioClip audioClip = AudioClip.Create("ReceivedAudio", audioData.Length / 2, 1, 44100, false);
-        AudioClip audioClip = AudioClip.Create("ReceivedAudio", audioData.Length / 2, 1, 22050, false);
+        //AudioClip audioClip = AudioClip.Create("ReceivedAudio", audioData.Length / 2, 1, 22050, false);
         //AudioClip audioClip = AudioClip.Create("ReceivedAudio", audioData.Length / 2, 1, 16000, false);
         //AudioClip audioClip = AudioClip.Create("ReceivedAudio", audioData.Length / 2, 1, 65535, false);
-
+        AudioClip audioClip = AudioClip.Create("ReceivedAudio", audioData.Length / 4, 1, 22050, false);
+        //Logger.Log("收到字节数：" + audioData.Length.ToString());
         // 设置音频数据
         audioClip.SetData(ConvertBytesToFloats(audioData), 0);
 
-        Logger.Log("Synhthesis OK");
-        Debug.Log("Start Synhthesis");
+        //Logger.Log("Synhthesis OK");
+        //Debug.Log("Start Synhthesis");
         // 播放音频
         StartCoroutine(PlayAudio(audioClip));
     }
@@ -116,21 +119,33 @@ class NetWorker : MonoBehaviour
     {
         audioSource.clip = audioClip;
         audioSource.Play();
-        Logger.Log("Start Play");
+        ++count;
+        //Logger.Log($"Start Play NO.{count} Audio");
         float playTime = audioClip.length;
         Logger.Log($"音频的时长是{playTime}s");
         return new WaitForSecondsRealtime(playTime);
     }
 
+    //private float[] ConvertBytesToFloats(byte[] bytes)
+    //{
+    //    float[] floats = new float[bytes.Length / 2];
+
+    //    for (int i = 0, j = 0; i < bytes.Length; i += 2, j++)
+    //    {
+    //        short value = (short)(bytes[i] | (bytes[i + 1] << 8));
+    //        floats[j] = value / 32768.0f; // 将 16 位有符号整数转换为范围在 -1 到 1 之间的浮点数
+    //    }
+
+    //    return floats;
+    //}
+
     private float[] ConvertBytesToFloats(byte[] bytes)
     {
-        float[] floats = new float[bytes.Length / 2];
+        float[] floats = new float[bytes.Length / 4];
 
-        for (int i = 0, j = 0; i < bytes.Length; i += 2, j++)
-        {
-            short value = (short)(bytes[i] | (bytes[i + 1] << 8));
-            floats[j] = value / 32768.0f; // 将 16 位有符号整数转换为范围在 -1 到 1 之间的浮点数
-        }
+        Buffer.BlockCopy(bytes,0,floats,0,bytes.Length);
+
+        Logger.Log("成功合成floats ：" + floats.Length.ToString());
 
         return floats;
     }
