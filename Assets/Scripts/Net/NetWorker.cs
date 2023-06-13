@@ -49,7 +49,11 @@ class NetWorker : MonoBehaviour
     //    }
     //}
 
-    //片段长是 1024  Recieving ，fileLength, recievedLength
+    /// <summary>
+    /// 片段长是 1024  Recieving ，fileLength, recievedLength
+    /// 对AudioBuffer的处理应该要加一个长度维护， 一个语音文件占了几个元素，传入合成函数中
+    /// </summary>
+    /// <param name="s"></param>
     void RecvAudio(Socket s)
     {
         // 创建缓冲区用于接收数据
@@ -59,7 +63,7 @@ class NetWorker : MonoBehaviour
         // 处理接收到的数据
         if (bytesRead > 0)
         {
-            Logger.Log($"接收到{bytesRead}个bytes");
+            // Logger.Log($"接收到{bytesRead}个bytes");
             if (Recieving == false)
             {
                 Recieving = true;
@@ -79,7 +83,6 @@ class NetWorker : MonoBehaviour
                 AudioBuffer.Add(fragment);
                 recievedLength += bytesRead;
             }
-            
             // Logger.Log(Encoding.UTF8.GetString(fragment));
         }
         else
@@ -90,7 +93,40 @@ class NetWorker : MonoBehaviour
 
         if(recievedLength >= fileLength)
         {
-            SynhthesisAudio();
+            if (recievedLength == fileLength)
+            {
+                SynhthesisAudio(AudioBuffer.Count);
+                EndRecieve();
+            }
+            else
+            {
+                //如果是连续发送的包，两个语音文件发生了粘包，那么就要把最后一个拿出来重新放
+                int OverLength = (int)(recievedLength - fileLength); //多发送的，下一个文件的长度
+                int LeftLength = bytesRead - OverLength; //上一个文件剩下的
+                Logger.Log("发生了粘包，上一个文件还剩 " + LeftLength.ToString() + " bytes 下一个文件发送了 " + OverLength.ToString() + "bytes");
+                AudioBuffer.RemoveAt(AudioBuffer.Count - 1);
+                byte[] fragment = new byte[LeftLength];
+                Array.Copy(buffer, 0, fragment, 0, LeftLength);
+                AudioBuffer.Add(fragment);
+                SynhthesisAudio(AudioBuffer.Count);
+
+                //获取下一个文件的首部信息，，，这里默认了首部信息不会被拆包，，，但是其实有可能会发生拆包 ，，，
+                if(OverLength > 8)
+                {
+                    fileLength = BitConverter.ToInt64(buffer, LeftLength);
+                    int StartPos = LeftLength + 8;
+                    OverLength -= 8;
+                    byte[] nextFile = new byte[OverLength];
+                    Array.Copy(buffer, StartPos, nextFile, 0, OverLength);
+                    AudioBuffer.Add(nextFile);
+                    recievedLength = OverLength;
+                }
+                else
+                {
+                    Logger.Log("ERROR ERROR 发生了拆包 发生了拆包 首部被拆了");
+                }
+                
+            }
         }
 
     }
@@ -113,33 +149,34 @@ class NetWorker : MonoBehaviour
     /// <summary>
     /// 音频接收 处理 播放 收尾
     /// </summary>
-    void EndPlay()
+    void EndRecieve()
     {
         Recieving = false;
         fileLength = 0;
         recievedLength = 0;
-        AudioBuffer.Clear();
-
-}
-
-    private void SynhthesisAudio()
-    {
-        if(AudioBuffer.Count > 0)
-        {
-            Debug.Log("Start Synhthesis");
-            OnSynhthesisAudio();
-            EndPlay();
-        }
     }
 
-    private void OnSynhthesisAudio()
+    private void SynhthesisAudio(int fragmentSize)
+    {
+        if(fragmentSize > 0)
+        {
+            Debug.Log("Start Synhthesis");
+            OnSynhthesisAudio(fragmentSize);
+        }
+    }
+    /// <summary>
+    /// 传入一个语音文件被拆成了几个 字节数组， 重新合成
+    /// </summary>
+    /// <param name="fragmentSize"></param>
+    private void OnSynhthesisAudio(int fragmentSize)
     {
         byte[] audioData = new byte[fileLength];
         long offset = 0;
-        foreach(byte[] fragment in AudioBuffer)
+        for(int i = 0; i < fragmentSize; ++i)
         {
-            Array.Copy(fragment, 0, audioData, offset, fragment.Length);
-            offset += fragment.Length;
+            Array.Copy(AudioBuffer[0], 0, audioData, offset, AudioBuffer[0].Length);
+            offset += AudioBuffer[0].Length;
+            AudioBuffer.RemoveAt(0);
         }
         // 创建空的 AudioClip
         //AudioClip audioClip = AudioClip.Create("ReceivedAudio", audioData.Length / 2, 1, 44100, false);
