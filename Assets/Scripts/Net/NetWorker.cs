@@ -24,11 +24,13 @@ class NetWorker : MonoBehaviour
 
     public AudioSource audioSource;
 
-    private int count;
+    private bool Recieving;
+    private long fileLength;
+    private long recievedLength;
     private void Start()
     {
-        count = 0;
         //StartSymbol = false; fragmentNum= 0; AudioBuffer.Clear(); totalAudioSize= 0;
+        Recieving = false; fileLength = 0; recievedLength = 0;
         Logger.Init();
         Connection();
     }
@@ -47,7 +49,7 @@ class NetWorker : MonoBehaviour
     //    }
     //}
 
-    //片段长是 1024
+    //片段长是 1024  Recieving ，fileLength, recievedLength
     void RecvAudio(Socket s)
     {
         // 创建缓冲区用于接收数据
@@ -58,11 +60,26 @@ class NetWorker : MonoBehaviour
         if (bytesRead > 0)
         {
             Logger.Log($"接收到{bytesRead}个bytes");
-            //按需存储，防止存储片段之间有大量的000000000
-            byte[] fragment = new byte[bytesRead];
-            Array.Copy(buffer, fragment, bytesRead);
-            // 将接收到的片段添加到列表中
-            AudioBuffer.Add(fragment);
+            if (Recieving == false)
+            {
+                Recieving = true;
+                //取总长度长度
+                fileLength = BitConverter.ToInt64(buffer, 0);
+                byte[] fragment = new byte[bytesRead - 8];
+                Array.Copy(buffer,8,fragment,0,bytesRead - 8);
+                AudioBuffer.Add(fragment);
+                recievedLength += bytesRead - 8;
+            }
+            else
+            {
+                //按需存储，防止存储片段之间有大量的000000000
+                byte[] fragment = new byte[bytesRead];
+                Array.Copy(buffer, fragment, bytesRead);
+                // 将接收到的片段添加到列表中
+                AudioBuffer.Add(fragment);
+                recievedLength += bytesRead;
+            }
+            
             // Logger.Log(Encoding.UTF8.GetString(fragment));
         }
         else
@@ -70,6 +87,12 @@ class NetWorker : MonoBehaviour
             Logger.Log($"Recv NO.{AudioBuffer.Count + 1} Fragment ERROR");
         }
         //if(AudioBuffer.Count == fragmentNum) { StartSymbol= false; Logger.Log($"StartSymbol change to false "); }
+
+        if(recievedLength >= fileLength)
+        {
+            SynhthesisAudio();
+        }
+
     }
 
     //void EndRecvAudio()
@@ -87,23 +110,40 @@ class NetWorker : MonoBehaviour
     //    SynhthesisAudio(audioData);
     //}
 
+    /// <summary>
+    /// 音频接收 处理 播放 收尾
+    /// </summary>
+    void EndPlay()
+    {
+        Recieving = false;
+        fileLength = 0;
+        recievedLength = 0;
+        AudioBuffer.Clear();
+
+}
+
     private void SynhthesisAudio()
     {
         if(AudioBuffer.Count > 0)
         {
             Debug.Log("Start Synhthesis");
-            OnSynhthesisAudio(AudioBuffer[0]);
-            AudioBuffer.RemoveAt(0);
+            OnSynhthesisAudio();
+            EndPlay();
         }
     }
 
-    private void OnSynhthesisAudio(byte[] audioData)
+    private void OnSynhthesisAudio()
     {
+        byte[] audioData = new byte[fileLength];
+        long offset = 0;
+        foreach(byte[] fragment in AudioBuffer)
+        {
+            Array.Copy(fragment, 0, audioData, offset, fragment.Length);
+            offset += fragment.Length;
+        }
         // 创建空的 AudioClip
         //AudioClip audioClip = AudioClip.Create("ReceivedAudio", audioData.Length / 2, 1, 44100, false);
         //AudioClip audioClip = AudioClip.Create("ReceivedAudio", audioData.Length / 2, 1, 22050, false);
-        //AudioClip audioClip = AudioClip.Create("ReceivedAudio", audioData.Length / 2, 1, 16000, false);
-        //AudioClip audioClip = AudioClip.Create("ReceivedAudio", audioData.Length / 2, 1, 65535, false);
         AudioClip audioClip = AudioClip.Create("ReceivedAudio", audioData.Length / 4, 1, 22050, false);
         //Logger.Log("收到字节数：" + audioData.Length.ToString());
         // 设置音频数据
@@ -119,7 +159,6 @@ class NetWorker : MonoBehaviour
     {
         audioSource.clip = audioClip;
         audioSource.Play();
-        ++count;
         //Logger.Log($"Start Play NO.{count} Audio");
         float playTime = audioClip.length;
         Logger.Log($"音频的时长是{playTime}s");
@@ -207,7 +246,6 @@ class NetWorker : MonoBehaviour
     private void Update()
     {
         UpdateNet();
-        SynhthesisAudio();
     }
 
     public void Connection()
