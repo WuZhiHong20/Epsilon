@@ -18,7 +18,7 @@ class NetWorker : MonoBehaviour
     //Revieve Buffer
     List<byte[]> AudioBuffer= new List<byte[]>();
     byte[] readBuff = new byte[4096];
-    string recvStr = "";
+    // string recvStr = "";
 
     List<Socket> checkList = new List<Socket>();
 
@@ -27,12 +27,19 @@ class NetWorker : MonoBehaviour
     private bool Recieving;
     private long fileLength;
     private long recievedLength;
+
+    private bool CanExit;
+
+    public Action controMouth;
+    public Epsilon epsilon;
+
     private void Start()
     {
         //StartSymbol = false; fragmentNum= 0; AudioBuffer.Clear(); totalAudioSize= 0;
-        Recieving = false; fileLength = 0; recievedLength = 0;
+        Recieving = false; fileLength = 0; recievedLength = 0; CanExit = false;
         Logger.Init();
         Connection();
+        controMouth += epsilon.StartMoveMouth;
     }
 
     private int fragmentSize = 2048;
@@ -196,6 +203,9 @@ class NetWorker : MonoBehaviour
     {
         audioSource.clip = audioClip;
         audioSource.Play();
+
+        controMouth.Invoke();
+
         //Logger.Log($"Start Play NO.{count} Audio");
         float playTime = audioClip.length;
         Logger.Log($"音频的时长是{playTime}s");
@@ -228,7 +238,7 @@ class NetWorker : MonoBehaviour
 
     private void UpdateNet()
     {
-        if (client == null) return;
+        if (client == null || CanExit == true) return;
 
         checkList.Clear();
         checkList.Add(client);
@@ -264,20 +274,13 @@ class NetWorker : MonoBehaviour
         }
     }
 
-    private void OnDestroy()
+    public void OnExitGame()
     {
-        OnExitGame();
-    }
-
-    private void OnExitGame()
-    {
-        client.Close();
-        Logger.Log("退出！");
-        #if UNITY_EDITOR
-            UnityEditor.EditorApplication.isPlaying = false;
-        #else
-            Application.Quit();
-        #endif
+        string sendInfo = SendInfo.Commands[2] + SendInfo.mode;
+        Logger.Log("Client wana send " + sendInfo + "\n");
+        byte[] sendBytes = System.Text.Encoding.Default.GetBytes(sendInfo);
+        client.BeginSend(sendBytes, 0, sendBytes.Length, 0, SendCallBack, client);
+        CanExit = true;
     }
 
     private void Update()
@@ -307,12 +310,24 @@ class NetWorker : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// 和Send btm UI进行了绑定
+    /// 能接受的格式是 : string message = "Repeat t 你好，我是牧濑红莉牺，是你的助手。很高兴见到你，从今往后，请多多关照。 87";
+    /// </summary>
     public void Send()
     {
         string sendStr = inputField.text;
-        Logger.Log("Client wana send " + sendStr + "\n");
-        byte[] sendBytes = System.Text.Encoding.Default.GetBytes(sendStr);
-        client.BeginSend(sendBytes, 0, sendBytes.Length, 0, SendCallBack, client);
+        if(sendStr.Length == 0)
+        {
+            inputField.text = "不要发送空内容哦（发送新内容前先清楚本内容...）";
+        }
+        else
+        {
+            string sendInfo = SendInfo.Commands[0] + SendInfo.mode + sendStr + " " + SendInfo.Speaker.ToString();
+            Logger.Log("Client wana send " + sendInfo + "\n");
+            byte[] sendBytes = System.Text.Encoding.Default.GetBytes(sendInfo);
+            client.BeginSend(sendBytes, 0, sendBytes.Length, 0, SendCallBack, client);
+        }
     }
 
     private void SendCallBack(IAsyncResult ar)
@@ -322,6 +337,18 @@ class NetWorker : MonoBehaviour
             Socket socket = (Socket)ar.AsyncState;
             int count = socket.EndSend(ar);
             Logger.Log("Socket Send Succ" + count);
+            if(CanExit == true)
+            {
+                client.Close();
+                Logger.Log("---------------Exit-------------");
+#if UNITY_EDITOR
+                Debug.Log("退出编辑器模式");
+                UnityEditor.EditorApplication.isPlaying = false;
+                Debug.Log("停止。。。失败？");
+#else
+                Application.Quit();
+#endif
+            }
         }
         catch(SocketException ex)
         {

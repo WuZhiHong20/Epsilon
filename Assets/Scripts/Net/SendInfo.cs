@@ -11,6 +11,6 @@ public static class SendInfo
 
     public static string mode = "t ";
 
-    public static int Speaker = 0;
+    public static int Speaker = 87;
 
 }
