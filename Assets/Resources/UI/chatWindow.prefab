@@ -353,6 +353,7 @@ GameObject:
   - component: {fileID: 8266149971708126508}
   - component: {fileID: 8266149971708126509}
   - component: {fileID: 8266149971708126511}
+  - component: {fileID: 401127850062587320}
   m_Layer: 5
   m_Name: chatWindow
   m_TagString: Untagged
@@ -516,3 +517,15 @@ MonoBehaviour:
   m_isRichTextEditingAllowed: 0
   m_LineLimit: 0
   m_InputValidator: {fileID: 0}
+--- !u!114 &401127850062587320
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8266149971708126504}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 639c60ac93ed304449968ebbfa6b9ef4, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 

@@ -12,8 +12,40 @@ using UnityEngine.UI;
 
 class NetWorker : MonoBehaviour
 {
+    private static NetWorker _instance;
+
+    public static NetWorker Instance
+    {
+        get
+        {
+            if(_instance == null)
+            {
+                _instance = new NetWorker();
+            }
+            return _instance;
+        }
+    }
+
+    private void Awake()
+    {
+        _instance = this;
+    }
     Socket client;
-    public TMP_InputField inputField;
+
+    private TMP_InputField _inputField;
+
+    private TMP_InputField inputField
+    {
+        get
+        {
+            if (_inputField == null)
+            {
+                GameObject btm_Send = GameObject.Find("chatWindow");
+                _inputField = btm_Send.GetComponentInChildren<TMP_InputField>();
+            }
+            return _inputField;
+        }
+    }
 
     //Revieve Buffer
     List<byte[]> AudioBuffer= new List<byte[]>();

@@ -14,7 +14,6 @@ public class UIKeeper : MonoBehaviour
         {
             if (uIKeeper == null)
             {
-                uIKeeper = new UIKeeper();
                 Logger.Log("New a UIKeeper");
             }
             return uIKeeper;
@@ -38,10 +37,6 @@ public class UIKeeper : MonoBehaviour
     private void Awake()
     {
         uIKeeper = this;
-    }
-
-    private UIKeeper()
-    {
         Init();
     }
 
@@ -69,6 +64,10 @@ public class UIKeeper : MonoBehaviour
         if (nameToPanel.ContainsKey(name))
         {
             Logger.Log("UI " + name + "已存在");
+            if (name == "Speakers")
+            {
+                nameToPanel[name].OpenPanel();
+            }
             return null;
         }
 
@@ -80,17 +79,26 @@ public class UIKeeper : MonoBehaviour
         }
 
         GameObject targetUI = Resources.Load<GameObject>(path);
+
+        if (targetUI == null)
+        {
+            Logger.Log("path " + path + "is null");
+            return null;
+        }
+
         targetUI.name = name;
 
         GameObject panelObj = Instantiate(targetUI, UIRoot, false);
+        panelObj.name = name;
         if (panelObj == targetUI)
         {
             Debug.Log("Same");
         }
 
         BasePanel uiPanel = panelObj.transform.GetComponent<BasePanel>();
-        nameToPanel.Add(name, uiPanel);
 
+        nameToPanel.Add(name, uiPanel);
+        uiPanel.OpenPanel();
         return uiPanel;
     }
 
@@ -101,6 +109,7 @@ public class UIKeeper : MonoBehaviour
         {
             return false; 
         }
+        nameToPanel.Remove(name);
         basePanel.OpenPanel();
         return true;
     }
