@@ -14,6 +14,8 @@ public static class Logger
 
     private static readonly string prefix = Application.persistentDataPath + "/LOG/";
 
+    private static string curPath = null;
+
     //private static readonly string answerPrefix = "助手:";
 
     public static void Init()
@@ -30,7 +32,11 @@ public static class Logger
 
     private static string GetFilePath()
     {
-        return prefix + date + suffix;
+        if(curPath == null)
+        {
+            curPath = prefix + date + suffix;
+        }
+        return curPath;
     }
 
     private static void WriteFile(string path, string content)

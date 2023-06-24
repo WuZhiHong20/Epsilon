@@ -22,24 +22,19 @@ class NetWorker : MonoBehaviour
 
     List<Socket> checkList = new List<Socket>();
 
-    public AudioSource audioSource;
-
     private bool Recieving;
     private long fileLength;
     private long recievedLength;
 
     private bool CanExit;
 
-    public Action controMouth;
     public Epsilon epsilon;
 
     private void Start()
     {
         //StartSymbol = false; fragmentNum= 0; AudioBuffer.Clear(); totalAudioSize= 0;
         Recieving = false; fileLength = 0; recievedLength = 0; CanExit = false;
-        Logger.Init();
         Connection();
-        controMouth += epsilon.StartMoveMouth;
     }
 
     private int fragmentSize = 2048;
@@ -196,21 +191,17 @@ class NetWorker : MonoBehaviour
         //Logger.Log("Synhthesis OK");
         //Debug.Log("Start Synhthesis");
         // 播放音频
-        StartCoroutine(PlayAudio(audioClip));
+        epsilon.Speaking(audioClip);
     }
 
-    private IEnumerator PlayAudio(AudioClip audioClip)
-    {
-        audioSource.clip = audioClip;
-        audioSource.Play();
+    //private IEnumerator PlayAudio(AudioClip audioClip)
+    //{ 
 
-        controMouth.Invoke();
-
-        //Logger.Log($"Start Play NO.{count} Audio");
-        float playTime = audioClip.length;
-        Logger.Log($"音频的时长是{playTime}s");
-        return new WaitForSecondsRealtime(playTime);
-    }
+    //    //Logger.Log($"Start Play NO.{count} Audio");
+    //    float playTime = audioClip.length;
+    //    Logger.Log($"音频的时长是{playTime}s");
+    //    return new WaitForSecondsRealtime(playTime);
+    //}
 
     //private float[] ConvertBytesToFloats(byte[] bytes)
     //{

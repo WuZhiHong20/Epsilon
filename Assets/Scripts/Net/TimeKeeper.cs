@@ -2,7 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class TimeManager : MonoBehaviour
+public class TimeKeeper : MonoBehaviour
 {
     int MeetTime;
     public Epsilon epsilon;
